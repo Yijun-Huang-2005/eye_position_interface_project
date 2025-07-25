@@ -6,7 +6,12 @@ import mediapipe as mp
 
 class EyePositionInterface:
     """
-    接口：捕获左右眼中心在相机坐标系下的三维位置 (X, Y, Z)，单位：厘米。
+    接口：捕获左右眼中心在相机坐标系下的三维位置 (X, Y, Z)，单位：毫米。
+
+    坐标系定义：
+      - x 轴（前后）：相机光轴方向，眼睛距离摄像头纵深，永远为正。
+      - y 轴（左右）：图像平面水平向右为正，向左为负。
+      - z 轴（上下）：图像平面垂直向上为正，向下为负。
 
     使用库：
       - pyrealsense2: Intel RealSense 深度 SDK
@@ -84,8 +89,8 @@ class EyePositionInterface:
 
         返回：
             success (bool)
-            left_cm (tuple): 左眼 (X,Y,Z) cm
-            right_cm (tuple): 右眼 (X,Y,Z) cm
+            left_mm (tuple): 左眼 (x,y,z) 毫米
+            right_mm (tuple): 右眼 (x,y,z) 毫米
         """
         frames = self.pipeline.wait_for_frames()
         aligned = self.align.process(frames)
@@ -123,9 +128,13 @@ class EyePositionInterface:
         pt_l = rs.rs2_deproject_pixel_to_point(self.intrinsics, [lx, ly], dz_l)
         pt_r = rs.rs2_deproject_pixel_to_point(self.intrinsics, [rx, ry], dz_r)
 
-        # 米转厘米
-        left = (pt_l[0]*100, pt_l[1]*100, pt_l[2]*100)
-        right = (pt_r[0]*100, pt_r[1]*100, pt_r[2]*100)
+        # 坐标系转换及单位：米 -> 毫米
+        # 原 pt = [X_cam, Y_cam, Z_cam]
+        # 新坐标 (x, y, z): x = Z_cam*1000,
+        #                y = -X_cam*1000,
+        #                z = -Y_cam*1000
+        left = (pt_l[2]*1000, -pt_l[0]*1000, -pt_l[1]*1000)
+        right = (pt_r[2]*1000, -pt_r[0]*1000, -pt_r[1]*1000)
 
         # 平滑
         self.left_history.append(left)

@@ -53,7 +53,7 @@ try:
         success, left, right = iface.get_eye_positions()
         if not success:
             break
-        # left 和 right 是 (X, Y, Z) 三元组，单位：厘米
+        # left 和 right 是 (X, Y, Z) 三元组，单位：毫米
         print(f"Left: {left}, Right: {right}")
 finally:
     iface.release()
@@ -68,8 +68,8 @@ eye-position
 输出示例：
 
 ```
-Left: (-6.10, -11.45, 65.97), Right: (4.45, -8.70, 54.45)
-Left: (-7.38, -10.23, 58.27), Right: (1.44, -11.08, 66.37)
+Left: (652.0, -43.5, -12.3), Right: (540.0, 21.7, -10.8)
+Left: (645.3, -42.8, -12.1), Right: (533.8, 22.1, -11.0)
 …
 ```
 
@@ -104,7 +104,7 @@ Left: (-7.38, -10.23, 58.27), Right: (1.44, -11.08, 66.37)
   ```
 
   - `success` (`bool`)：True 表示获取成功
-  - `left_cm`, `right_cm` (`tuple[float, float, float]`)：左右眼中心在相机坐标系下的三维坐标（厘米）
+  - `left_cm`, `right_cm` (`tuple[float, float, float]`)：左右眼中心在相机坐标系下的三维坐标（毫米）
 
 - **方法 **``\
   停止摄像头采集、释放资源。
