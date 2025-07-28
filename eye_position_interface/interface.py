@@ -72,12 +72,21 @@ class EyePositionInterface:
         """
         在 (x,y) 周围 size x size 区域采样非零深度并取平均，返回深度 (米)。
         无有效深度则返回 0.0。
+        增加了越界检查，避免索引越界错误。
         """
         vals = []
         half = size // 2
+        h = depth_frame.get_height()
+        w = depth_frame.get_width()
+
         for dx in range(-half, half+1):
             for dy in range(-half, half+1):
-                dist = depth_frame.get_distance(x+dx, y+dy)
+                sx = x + dx
+                sy = y + dy
+                # 越界检查
+                if not (0 <= sx < w and 0 <= sy < h):
+                    continue
+                dist = depth_frame.get_distance(sx, sy)
                 if dist > 0:
                     vals.append(dist)
         return float(np.mean(vals)) if vals else 0.0
@@ -111,8 +120,8 @@ class EyePositionInterface:
 
         # 计算像素中心
         def center(ids):
-            pts = np.array([[lm[i].x*w, lm[i].y*h] for i in ids])
-            return int(pts[:,0].mean()), int(pts[:,1].mean())
+            pts = np.array([[lm[i].x * w, lm[i].y * h] for i in ids])
+            return int(pts[:, 0].mean()), int(pts[:, 1].mean())
 
         lx, ly = center(self.LEFT_IDS)
         rx, ry = center(self.RIGHT_IDS)
@@ -133,8 +142,8 @@ class EyePositionInterface:
         # 新坐标 (x, y, z): x = Z_cam*1000,
         #                y = -X_cam*1000,
         #                z = -Y_cam*1000
-        left = (pt_l[2]*1000, -pt_l[0]*1000, -pt_l[1]*1000)
-        right = (pt_r[2]*1000, -pt_r[0]*1000, -pt_r[1]*1000)
+        right = (pt_l[2] * 1000, -pt_l[0] * 1000, -pt_l[1] * 1000)
+        left = (pt_r[2] * 1000, -pt_r[0] * 1000, -pt_r[1] * 1000)
 
         # 平滑
         self.left_history.append(left)
